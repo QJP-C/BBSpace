@@ -167,6 +167,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 .or()
                 .like(!StringUtil.isNullOrEmpty(search), Task::getTitle, search);
         qw.eq(!StringUtil.isNullOrEmpty(typeId), Task::getTypeId, typeId).eq(Task::getState, 1).orderByDesc(Task::getReleaseTime);
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("暂无任务，快去发布吧！");
         return R.success(getListR(openid, qw, page, pageSize));
     }
 
@@ -188,6 +190,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             qw.eq(Task::getState, status);
         }
         qw.orderByDesc(Task::getReleaseTime);
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("暂无发布，快去发布吧！");
         return R.success(getListR(openid, qw, page, pageSize));
     }
 
@@ -209,6 +213,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         pageInfo.setOptimizeCountSql(false);
         Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
         taskHistoryService.page(pageInfo, qw);
+        int count = taskHistoryService.count(qw);
+        if (count <= 0)  BangException.cast("暂无足迹，快去逛逛吧！");
         BeanUtils.copyProperties(pageInfo, dtoPage, "records");
         List<TaskHistory> records = pageInfo.getRecords();
         List<TaskListResDto> list = records.stream().map(i -> {
@@ -235,6 +241,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<TaskCollect> qw = new LambdaQueryWrapper<>();
         qw.eq(TaskCollect::getUserId, openid).orderByDesc(TaskCollect::getCollectTime);
+        int count = taskCollectService.count(qw);
+        if (count <= 0)  BangException.cast("暂无发布，快去发布吧！");
         taskCollectService.page(pageInfo, qw);
         BeanUtils.copyProperties(pageInfo, dtoPage, "records");
         List<TaskCollect> records = pageInfo.getRecords();
@@ -318,6 +326,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
             }
         }
         qw.orderByDesc(Task::getReleaseTime);
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("暂无帮忙，快去接任务吧！");
         Page<TaskListResDto> listR = getListR(openid, qw, page, pageSize);
         return R.success(listR);
     }
@@ -335,6 +345,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         Page<Task> pageInfo = new Page<>(page, pageSize);
         pageInfo.setOptimizeCountSql(false);
         Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("暂无帮忙，快去接任务吧！");
         this.page(pageInfo, qw);
         BeanUtils.copyProperties(pageInfo, dtoPage, "records");
         List<Task> list = pageInfo.getRecords();

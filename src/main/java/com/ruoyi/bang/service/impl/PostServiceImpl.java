@@ -203,6 +203,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         //该话题的帖子 查询条件
         LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
         qw.eq(Post::getTopicId, topicId);
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("该话题暂无帖子，快去发布吧！");
         //构造返回值
         Page<PostListResDto> resDtoList = getPostListResDtos(openid, qw, page, pageSize);
         //按点赞数降序
@@ -231,6 +233,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
         //按时间降序
         qw.eq(Post::getTopicId, topicId).orderByDesc(Post::getReleaseTime);
+        //非空判断
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("该话题暂无帖子，快去发布吧！");
         //构造返回值
         Page<PostListResDto> resDtoList = getPostListResDtos(openid, qw, page, pageSize);
         return R.success(resDtoList);
@@ -252,6 +257,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         qw.or();
         qw.like(search!=null,Post::getText,search);
         qw.orderByDesc(Post::getReleaseTime);
+        //非空判断
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("暂无帖子，快去发布吧！");
         Page<PostListResDto> resDtoList = getPostListResDtos(openid,qw , page, pageSize);
         //按点赞数降序
         resDtoList.setRecords(ListUtil.sortByProperty(resDtoList.getRecords(),"likeNum"));
@@ -275,6 +283,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         qw.like(search!=null,Post::getLocation,search)
                 .or();
         qw.like(search!=null,Post::getText,search);
+        //非空判断
+        int count = this.count(qw);
+        if (count <= 0)  BangException.cast("暂无帖子，快去发布吧！");
         Page<PostListResDto> resDtoList = getPostListResDtos(openid,qw,page,pageSize);
         //按点赞数降序
         resDtoList.setRecords(ListUtil.sortByProperty(resDtoList.getRecords(),"likeNum"));
