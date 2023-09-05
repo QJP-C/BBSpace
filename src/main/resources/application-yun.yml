@@ -1,0 +1,56 @@
+
+spring:
+  mail:
+    host: smtp.qq.com
+    username: 915950092@qq.com
+#    password: xsydehiaawrgbecf
+    password: llshwdspbllibcah
+    port: 465
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          starttls:
+            enable: true
+            required: true
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+
+  application:
+    #????????
+    name: bang
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3306/bang?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: root
+      password: qjp0128.
+  redis:
+    password: qjp0128.
+    host: localhost
+    database: 1
+    port: 6379
+  cache:
+    redis:
+      time-to-live: 1800000     #????????  30??
+mybatis-plus:
+  configuration:
+    #???????????????????????????????????????      MP????  ???
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+minio:
+  endpoint: http://localhost:9000
+  accessKey: 915950092
+  secretKey: qjp0128.
+  bucketName: bbspace
+
