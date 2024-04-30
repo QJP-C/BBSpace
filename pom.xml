@@ -196,9 +196,20 @@
             <version>2.2.1</version>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.szj.count</groupId>-->
+<!--            <artifactId>szj</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--        </dependency>-->
+
 
     </dependencies>
-
+    <repositories>
+        <repository>
+            <id>szj</id>
+            <url>http://47.107.225.176/upload</url>
+        </repository>
+    </repositories>
     <build>
         <plugins>
             <plugin>

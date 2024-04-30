@@ -44,6 +44,8 @@ public class UserController {
         return userService.wxLogin(map.get("code"));
     }
 
+
+
     @ApiOperation("用户资料修改")
     @PutMapping("updateInfo")
     public R updateInfo(@RequestBody UserUpdate userUpdate, @RequestHeader("Authorization") String header) {

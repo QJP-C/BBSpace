@@ -101,7 +101,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 user.setSex(0);
                 String substring = openid.substring(0, 8);
                 user.setUsername("帮帮用户" + substring);
-                user.setHead("http://qjpqjp.top:9000/bang/photo/default.png");
+                user.setHead("https://qjpqjp.top/file/bbspace/photo/default.png");
                 user.setSignature("这个用户懒且不够个性，暂时没有个性签名");
                 boolean rs = this.save(user);
                 if (!rs) {
@@ -163,7 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public R<String> check(String openid, String phone, String code) {
-        String codeInRedis = (String) stringRedisTemplate.opsForValue().get(phone);
+        String codeInRedis = stringRedisTemplate.opsForValue().get(phone);
         User user = new User();
         user.setId(openid);
         user.setPhone(phone);

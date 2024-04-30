@@ -9,7 +9,6 @@ public class BangException extends RuntimeException{
     public BangException() {super();}
     public BangException(String message){
         super(message);
-        System.out.println(message);
     }
     public static void cast(String message){
         throw new BangException(message);

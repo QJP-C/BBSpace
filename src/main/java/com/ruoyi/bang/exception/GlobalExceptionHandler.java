@@ -4,7 +4,11 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.ruoyi.bang.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.EOFException;
@@ -14,8 +18,8 @@ import java.sql.SQLIntegrityConstraintViolationException;
  * 全局异常处理
  * @author qjp
  */
-//@ControllerAdvice(annotations = {RestController.class, Controller.class})
-//@ResponseBody
+@ControllerAdvice(annotations = {RestController.class, Controller.class})
+@ResponseBody
 @Slf4j
 
 public class GlobalExceptionHandler {

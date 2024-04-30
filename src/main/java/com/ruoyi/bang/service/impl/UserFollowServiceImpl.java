@@ -29,7 +29,8 @@ import java.util.stream.Collectors;
 public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFollow> implements UserFollowService {
     @Resource
     private UserService userService;
-
+    @Resource
+    private UserFollowMapper userFollowMapper;
     /**
      * 关注/取关用户
      * @param toId
@@ -53,10 +54,11 @@ public class UserFollowServiceImpl extends ServiceImpl<UserFollowMapper, UserFol
         }
         //未关注 关注
         UserFollow userFollow = new UserFollow();
-        userFollow.setFollowId(toId);
         userFollow.setUserId(openid);
+        userFollow.setFollowId(toId);
         userFollow.setCreateTime(LocalDateTime.now());
         boolean save = this.save(userFollow);
+//        int save = userFollowMapper.insert(userFollow);
         return save ? R.success("关注成功！") : R.error("关注失败");
     }
 

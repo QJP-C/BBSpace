@@ -1,12 +1,12 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   servlet:
     # 应用的访问路径
     context-path: /bang
   profiles:
-    active: yun
-#    active: loc
+#    active: yun
+    active: loc
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher # 解决swagger与高版本SpringBoot的冲突

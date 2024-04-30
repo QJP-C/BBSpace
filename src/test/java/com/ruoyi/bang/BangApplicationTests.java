@@ -5,12 +5,15 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.ruoyi.bang.dto.UserUpdate;
+import com.ruoyi.bang.common.R;
+import com.ruoyi.bang.domain.OnlineMs;
 import com.ruoyi.bang.domain.Task;
 import com.ruoyi.bang.domain.User;
-import com.ruoyi.bang.service.TaskClassService;
-import com.ruoyi.bang.service.TaskService;
-import com.ruoyi.bang.service.UserService;
+import com.ruoyi.bang.domain.UserFollow;
+import com.ruoyi.bang.dto.TaskListResDto;
+import com.ruoyi.bang.dto.UserUpdate;
+import com.ruoyi.bang.service.*;
+import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeanUtils;
@@ -180,8 +183,83 @@ class BangApplicationTests {
     }
     @Test
     void RedisClass244(){
+
+        LambdaQueryWrapper<Task> qw = new LambdaQueryWrapper<>();
+        String search = "陪我";
+        String typeId = null;
+        qw.like(!StringUtil.isNullOrEmpty(search), Task::getLocation, search)
+                .or()
+                .like(!StringUtil.isNullOrEmpty(search), Task::getDetails, search)
+                .or()
+                .like(!StringUtil.isNullOrEmpty(search), Task::getTitle, search);
+
+        qw.eq(!StringUtil.isNullOrEmpty(typeId), Task::getTypeId, typeId).eq(Task::getState, 1).orderByDesc(Task::getReleaseTime);
+//        //分页构造器对象
+//        Page<Task> pageInfo = new Page<>(page, pageSize);
+//        pageInfo.setOptimizeCountSql(false);
+//        Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
+//        int count = this.count(qw);
+//        if (count <= 0) dtoPage.setRecords(new ArrayList<TaskListResDto>());
+//        this.page(pageInfo, qw);
+//        BeanUtils.copyProperties(pageInfo, dtoPage, "records");
+//        List<Task> list = pageInfo.getRecords();
+//        List<TaskListResDto> res = list.stream().map(task -> {
+//            return getTaskListResDto(openid, task);
+//        }).collect(Collectors.toList());
+//        dtoPage.setRecords(res);
+
+
+        List<Task> taskList = taskService.list(qw);
+        taskList.forEach(System.out::println);
+    }
+    @Test
+    void RedisClass243(){
+        R<Page<TaskListResDto>> taskedList = taskService.taskList("oI1vd5BUGnDzqKfkJbprGklQnIDk", null, null, 1, 5);
+        Page<TaskListResDto> result = taskedList.getResult();
+        List<TaskListResDto> records = result.getRecords();
+        records.forEach(System.out::println);
+    }
+    @Resource
+    OnlineMsService onlineMsService;
+    @Test
+    void RedisClass253(){
+        onlineMsService.message("oI1vd5BUGnDzqKfkJbprGklQnIDk","oI1vd5DC3H0lVyJizpK58ZPS9Mz8","hi");
+    }
+    @Resource
+    UserFollowService userFollowService;
+    @Test
+    void RedisClass257(){
+        R<String> follow = userFollowService.follow("oI1vd5DC3H0lVyJizpK58ZPS9Mz8", "oI1vd5DC3H0lVyJizpK58ZPS9Mz8");
+        System.out.println(follow);
     }
 
+    @Test
+    void rrrr(){
+        UserFollow userFollow = new UserFollow();
+        userFollow.setUserId("oI1vd5DC3H0lVyJizpK58ZPS9Mz8");
+        userFollow.setFollowId("oI1vd5DC3H0lVyJizpK58ZPS9Mz8");
+        userFollow.setCreateTime(LocalDateTime.now());
+        userFollowService.save(userFollow);
+    }
+
+    @Test
+    void fff(){
+        String openid = "oI1vd5BUGnDzqKfkJbprGklQnIDk";
+        LambdaQueryWrapper<OnlineMs> wrapper = new LambdaQueryWrapper<>();
+        String toId ="oI1vd5DC3H0lVyJizpK58ZPS9Mz8";
+        wrapper.eq(OnlineMs::getFromId, openid)
+                .eq(OnlineMs::getToId, toId)
+                .or()
+                .eq(OnlineMs::getFromId, toId)
+                .eq(OnlineMs::getToId, openid)
+                .orderByAsc(OnlineMs::getSendTime);
+        List<OnlineMs> list = onlineMsService.list(wrapper);
+        for (OnlineMs onlineMs : list) {
+            onlineMs.setIsRead(1);
+        }
+        onlineMsService.updateBatchById(list);
+        list.forEach(System.out::println);
+    }
 }
 
 

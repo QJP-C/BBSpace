@@ -27,10 +27,7 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -81,7 +78,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         task.setLimitTime(limitTimed);
         task.setFromId(openid);
         task.setReleaseTime(time);
-        task.setState(0);//已发布
+        task.setState(1);//已发布
         boolean insert = this.save(task);
         if (!insert) {
             BangException.cast("发布失败!");
@@ -167,8 +164,8 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
                 .or()
                 .like(!StringUtil.isNullOrEmpty(search), Task::getTitle, search);
         qw.eq(!StringUtil.isNullOrEmpty(typeId), Task::getTypeId, typeId).eq(Task::getState, 1).orderByDesc(Task::getReleaseTime);
-        int count = this.count(qw);
-        if (count <= 0)  BangException.cast("暂无任务，快去发布吧！");
+//        int count = this.count(qw);
+//        if (count <= 0)  BangException.cast("暂无任务，快去发布吧！");
         return R.success(getListR(openid, qw, page, pageSize));
     }
 
@@ -346,7 +343,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
         pageInfo.setOptimizeCountSql(false);
         Page<TaskListResDto> dtoPage = new Page<>(page, pageSize);
         int count = this.count(qw);
-        if (count <= 0)  BangException.cast("暂无帮忙，快去接任务吧！");
+        if (count <= 0) dtoPage.setRecords(new ArrayList<TaskListResDto>());
         this.page(pageInfo, qw);
         BeanUtils.copyProperties(pageInfo, dtoPage, "records");
         List<Task> list = pageInfo.getRecords();
@@ -376,7 +373,6 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task> implements Ta
      * @param task
      * @return
      */
-    @NotNull
     private TaskListResDto getTaskListResDto(String openid, Task task) {
         TaskListResDto dto = new TaskListResDto();
         BeanUtils.copyProperties(task, dto);
