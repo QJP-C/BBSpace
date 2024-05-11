@@ -13,6 +13,7 @@ import com.ruoyi.bang.domain.UserFollow;
 import com.ruoyi.bang.dto.TaskListResDto;
 import com.ruoyi.bang.dto.UserUpdate;
 import com.ruoyi.bang.service.*;
+import com.ruoyi.bang.utils.JwtUtil;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -259,6 +260,15 @@ class BangApplicationTests {
         }
         onlineMsService.updateBatchById(list);
         list.forEach(System.out::println);
+    }
+
+    @Resource
+    JwtUtil jwtUtil;
+    @Test
+    void testToken(){
+        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyMDdjZTg5MGU0MzdmNjQ5ZmNmOWQ0Njc4MjI4MDgwYjZjNTI4YWZjMzRiZTgzOThhYTRiMThkODU5ZDU0NzIyIiwiaWF0IjoxNzE0NDY0NzYwLCJleHAiOjE3MTUwNjk1NjB9.m585VX7ULb97B7QFXh9vsxvekp4Tykb2VmOyPgbFkpDJpHufI9cV1cN-_-V0iV7f274BWNsrtzh2VQNc4KzrPg";
+        String openid = jwtUtil.getOpenidFromToken(token);
+        System.out.println(openid);
     }
 }
 

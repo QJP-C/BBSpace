@@ -58,6 +58,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         excludePathPatterns.add("/favicon.ico");
         excludePathPatterns.add("/bang/user/login");
+        excludePathPatterns.add("/bang/user/h5Login");
         excludePathPatterns.add("/bang/user/send");
         excludePathPatterns.add("/bang/gpt");
         excludePathPatterns.add("/bang/mo/**");

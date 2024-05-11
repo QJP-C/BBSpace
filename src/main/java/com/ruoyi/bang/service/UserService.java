@@ -25,6 +25,13 @@ public interface UserService extends IService<User> {
     R wxLogin(String code);
 
     /**
+     * h5登陆
+     * @param code
+     * @return
+     */
+    R h5Login(String phone,String code);
+
+    /**
      * 修改用户信息
      * @param userUpdate
      * @param openid

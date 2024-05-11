@@ -44,7 +44,11 @@ public class UserController {
         return userService.wxLogin(map.get("code"));
     }
 
-
+    @ApiOperation("h5登录")
+    @PostMapping("h5Login")
+    public R h5Login(@NotBlank @RequestBody Map<String,String> map) {
+        return userService.h5Login(map.get("phone"),map.get("code"));
+    }
 
     @ApiOperation("用户资料修改")
     @PutMapping("updateInfo")
