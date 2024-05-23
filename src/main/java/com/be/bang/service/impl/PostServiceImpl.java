@@ -280,17 +280,54 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Override
     public R queryPostOfImageText(String openid, int page, int pageSize, String search) {
         LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
-        qw.eq(Post::getIsVideo,0).orderByDesc(Post::getReleaseTime);
+//        qw.eq(Post::getIsVideo,0).orderByDesc(Post::getReleaseTime);
         qw.like(search!=null,Post::getLocation,search)
                 .or();
         qw.like(search!=null,Post::getText,search);
         //非空判断
         int count = this.count(qw);
         if (count <= 0)  BangException.cast("暂无帖子，快去发布吧！");
-        Page<PostListResDto> resDtoList = getPostListResDtos(openid,qw,page,pageSize);
+//        Page<PostListResDto> resDtoList = getPostListResDtos(openid,qw,page,pageSize);
+        Page<Post> pageInfo = new Page<>(page, pageSize);
+        pageInfo.setOptimizeCountSql(false);
+        Page<PostListResDto> dtoPage = new Page<>(page, pageSize);
+        this.page(pageInfo, qw);
+        List<Post> list = pageInfo.getRecords();
+        BeanUtils.copyProperties(pageInfo, dtoPage, "records");
+        List<PostListResDto> resDtoList = list.stream().map(post -> {
+            String postId = post.getId();
+            PostListResDto postListResDto = new PostListResDto();
+            BeanUtils.copyProperties(post, postListResDto);
+            //获取话题名
+            String topicName = topicService.getTopicName(post.getTopicId());
+            postListResDto.setTopicName(topicName);
+            //获取发帖人信息
+            Map<String,String> userInfo = userService.getOneInfo(post.getUserId());
+            postListResDto.setHead(userInfo.get("head"));
+            postListResDto.setUsername(userInfo.get("username"));
+            //是否关注发帖人
+            boolean isFollow = userFollowService.isFollow(post.getUserId(), openid);
+            postListResDto.setFollow(isFollow);
+            //获取帖子点赞量
+            Long likeNum = postLikeService.getLikeNum(postId);
+            postListResDto.setLikeNum(likeNum);
+            //获取附件
+            String[] urls = fileService.getPostFiles(postId);
+            postListResDto.setUrls(urls);
+            //是否点赞
+            boolean isLike = postLikeService.isLike(openid, postId);
+            postListResDto.setLike(isLike);
+            //是否收藏
+            boolean collect = postCollectService.isCollect(openid, postId);
+            postListResDto.setCollect(collect);
+            return postListResDto;
+        }).collect(Collectors.toList());
+        dtoPage.setRecords(resDtoList);
+
+        dtoPage.setRecords(dtoPage.getRecords().stream().filter(postListResDto -> postListResDto.getUrls().length>0).collect(Collectors.toList()));
         //按点赞数降序
-        resDtoList.setRecords(ListUtil.sortByProperty(resDtoList.getRecords(),"likeNum"));
-        resDtoList.setRecords(ListUtil.reverse(resDtoList.getRecords()));
+        dtoPage.setRecords(ListUtil.sortByProperty(dtoPage.getRecords(),"likeNum"));
+        dtoPage.setRecords(ListUtil.reverse(dtoPage.getRecords()));
         return R.success(resDtoList);
     }
 
