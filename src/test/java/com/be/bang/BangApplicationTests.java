@@ -270,6 +270,12 @@ class BangApplicationTests {
         String openid = jwtUtil.getOpenidFromToken(token);
         System.out.println(openid);
     }
+
+
+    @Test
+    public void test() throws Exception {
+
+    }
 }
 
 
