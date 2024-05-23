@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.be.bang.common.R;
 import com.be.bang.service.OnlineMsService;
+import com.be.bang.utils.SpringContextUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -25,9 +26,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @CrossOrigin
 @Component
 public class MessageController {
-    public static OnlineMsService onlineMsService;
+    //    private OnlineMsService onlineMsService;
+    private OnlineMsService onlineMsService;
 
-    static Log log=LogFactory.get(MessageController.class);
+    static Log log = LogFactory.get(MessageController.class);
     //静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
     private static int onlineCount = 0;
     //旧：concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象。
@@ -37,17 +39,19 @@ public class MessageController {
     //新：使用map对象，便于根据userId来获取对应的WebSocket
     private static ConcurrentHashMap<String, MessageController> websocketList = new ConcurrentHashMap<>();
     //接收sid
-    private String userId="";
-    private static ConcurrentHashMap<String,Session> sessionPool = new ConcurrentHashMap<String,Session>();
+    private String userId = "";
+    private static ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<String, Session>();
+
     /**
-     * 连接建立成功调用的方法*/
+     * 连接建立成功调用的方法
+     */
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") String userId) {
         this.session = session;
         //判断集合中是否存在当前用户
         if (!websocketList.containsKey(userId)) {
             log.info("websocketList->" + JSON.toJSONString(websocketList));
-            sessionPool.put(userId,session);
+            sessionPool.put(userId, session);
             websocketList.put(userId, this);
             webSocketSet.add(this);     //加入set中
             addOnlineCount();           //在线数加1
@@ -67,7 +71,7 @@ public class MessageController {
      */
     @OnClose
     public void onClose() {
-        if(websocketList.get(this.userId)!=null){
+        if (websocketList.get(this.userId) != null) {
             websocketList.remove(this.userId);
             //webSocketSet.remove(this);  //从set中删除
             subOnlineCount();           //在线数减1
@@ -78,34 +82,36 @@ public class MessageController {
     /**
      * 收到客户端消息后调用的方法
      *
-     * @param message 客户端发送过来的消息*/
+     * @param message 客户端发送过来的消息
+     */
     @OnMessage
     public void onMessage(String message, Session session) {
-        log.info("收到来自窗口"+userId+"的信息:"+message);
-        if(StringUtils.isNotBlank(message)){
-            JSONArray list=JSONArray.parseArray(message);
+        log.info("收到来自窗口" + userId + "的信息:" + message);
+        if (StringUtils.isNotBlank(message)) {
+            JSONArray list = JSONArray.parseArray(message);
+            onlineMsService = SpringContextUtil.getBean(OnlineMsService.class);
             for (int i = 0; i < list.size(); i++) {
                 try {
                     //解析发送的报文
                     JSONObject object = list.getJSONObject(i);
-                    String toUserId=object.getString("toUserId");
-                    String contentText=object.getString("contentText");
-                    object.put("fromUserId",this.userId);
+                    String toUserId = object.getString("toUserId");
+                    String contentText = object.getString("contentText");
+                    object.put("fromUserId", this.userId);
                     if (!websocketList.containsKey(toUserId)) {
-                            //如果对方离线
+                        //如果对方离线
                         onlineMsService.offline(userId, toUserId, contentText);
                     }
                     //传送给对应用户的websocket
-                    if(StringUtils.isNotBlank(toUserId)&&StringUtils.isNotBlank(contentText)){
-                        MessageController socketx=websocketList.get(toUserId);
+                    if (StringUtils.isNotBlank(toUserId) && StringUtils.isNotBlank(contentText)) {
+                        MessageController socketx = websocketList.get(toUserId);
                         //需要进行转换，userId
-                        if(socketx!=null){
+                        if (socketx != null) {
                             socketx.sendMessage(JSON.toJSONString(R.success(object)));
                             //此处可以放置相关业务代码，例如存储到数据库
-                            onlineMsService.message(userId,toUserId,contentText);
+                            onlineMsService.message(userId, toUserId, contentText);
                         }
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -113,7 +119,6 @@ public class MessageController {
     }
 
     /**
-     *
      * @param session
      * @param error
      */
@@ -122,6 +127,7 @@ public class MessageController {
         log.error("发生错误");
         error.printStackTrace();
     }
+
     /**
      * 实现服务器主动推送
      */
@@ -134,9 +140,9 @@ public class MessageController {
     public void sendOneMessage(String userId, String message) {
         log.info("11");
         Session session = sessionPool.get(userId);
-        if (session != null&&session.isOpen()) {
+        if (session != null && session.isOpen()) {
             try {
-                log.info("【websocket消息】 单点消息:"+message);
+                log.info("【websocket消息】 单点消息:" + message);
                 session.getAsyncRemote().sendText(message);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -146,10 +152,10 @@ public class MessageController {
 
     // 此为广播消息
     public void sendAllMessage(String message) {
-        log.info("【websocket消息】广播消息:"+message);
-        for(MessageController webSocket : webSocketSet) {
+        log.info("【websocket消息】广播消息:" + message);
+        for (MessageController webSocket : webSocketSet) {
             try {
-                if(webSocket.session.isOpen()) {
+                if (webSocket.session.isOpen()) {
                     webSocket.session.getAsyncRemote().sendText(message);
                 }
             } catch (Exception e) {
@@ -160,11 +166,11 @@ public class MessageController {
 
     // 此为单点消息(多人)
     public void sendMoreMessage(String[] userIds, String message) {
-        for(String userId:userIds) {
+        for (String userId : userIds) {
             Session session = sessionPool.get(userId);
-            if (session != null&&session.isOpen()) {
+            if (session != null && session.isOpen()) {
                 try {
-                    log.info("【websocket消息】 单点消息:"+message);
+                    log.info("【websocket消息】 单点消息:" + message);
                     session.getAsyncRemote().sendText(message);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -173,17 +179,18 @@ public class MessageController {
         }
 
     }
+
     /**
      * 群发自定义消息
-     * */
-    public static void sendInfo(String message,@PathParam("userId") String userId) throws IOException {
-        log.info("推送消息到窗口"+userId+"，推送内容:"+message);
+     */
+    public static void sendInfo(String message, @PathParam("userId") String userId) throws IOException {
+        log.info("推送消息到窗口" + userId + "，推送内容:" + message);
         for (MessageController item : webSocketSet) {
             try {
                 //这里可以设定只推送给这个sid的，为null则全部推送
-                if(userId==null) {
+                if (userId == null) {
                     item.sendMessage(message);
-                }else if(item.userId.equals(userId)){
+                } else if (item.userId.equals(userId)) {
                     item.sendMessage(message);
                 }
             } catch (IOException e) {
