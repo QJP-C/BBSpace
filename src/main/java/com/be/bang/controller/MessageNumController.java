@@ -20,24 +20,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * @author qjp
+ * @author qjp 未读消息数
  */
-@ServerEndpoint("/bang/im/{userId}")
+@ServerEndpoint("/bang/msNum/{userId}")
 @CrossOrigin
 @Component
-public class MessageController {
+public class MessageNumController {
     private OnlineMsService onlineMsService;
 
-    static Log log = LogFactory.get(MessageController.class);
+    static Log log = LogFactory.get(MessageNumController.class);
     //静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
     private static int onlineCount = 0;
     //旧：concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象。
-    private static CopyOnWriteArraySet<MessageController> webSocketSet = new CopyOnWriteArraySet<MessageController>();
+    private static CopyOnWriteArraySet<MessageNumController> webSocketSet = new CopyOnWriteArraySet<MessageNumController>();
     //与某个客户端的连接会话，需要通过它来给客户端发送数据
     private Session session;
     //新：使用map对象，便于根据userId来获取对应的WebSocket
-    private static ConcurrentHashMap<String, MessageController> websocketList = new ConcurrentHashMap<>();
-    //接收sid
+    private static ConcurrentHashMap<String, MessageNumController> websocketList = new ConcurrentHashMap<>();
+    //接收sid(用户自己的id)
     private String userId = "";
     private static ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<String, Session>();
 
@@ -102,7 +102,7 @@ public class MessageController {
                     }
                     //传送给对应用户的websocket
                     if (StringUtils.isNotBlank(toUserId) && StringUtils.isNotBlank(contentText)) {
-                        MessageController socketx = websocketList.get(toUserId);
+                        MessageNumController socketx = websocketList.get(toUserId);
                         //需要进行转换，userId
                         if (socketx != null) {
                             socketx.sendMessage(JSON.toJSONString(R.success(object)));
@@ -152,7 +152,7 @@ public class MessageController {
     // 此为广播消息
     public void sendAllMessage(String message) {
         log.info("【websocket消息】广播消息:" + message);
-        for (MessageController webSocket : webSocketSet) {
+        for (MessageNumController webSocket : webSocketSet) {
             try {
                 if (webSocket.session.isOpen()) {
                     webSocket.session.getAsyncRemote().sendText(message);
@@ -184,7 +184,7 @@ public class MessageController {
      */
     public static void sendInfo(String message, @PathParam("userId") String userId) throws IOException {
         log.info("推送消息到窗口" + userId + "，推送内容:" + message);
-        for (MessageController item : webSocketSet) {
+        for (MessageNumController item : webSocketSet) {
             try {
                 //这里可以设定只推送给这个sid的，为null则全部推送
                 if (userId == null) {
@@ -203,11 +203,11 @@ public class MessageController {
     }
 
     public static synchronized void addOnlineCount() {
-        MessageController.onlineCount++;
+        MessageNumController.onlineCount++;
     }
 
     public static synchronized void subOnlineCount() {
-        MessageController.onlineCount--;
+        MessageNumController.onlineCount--;
     }
 }
 
