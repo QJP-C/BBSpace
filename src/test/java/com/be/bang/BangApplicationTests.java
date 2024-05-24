@@ -10,6 +10,7 @@ import com.be.bang.domain.OnlineMs;
 import com.be.bang.domain.Task;
 import com.be.bang.domain.User;
 import com.be.bang.domain.UserFollow;
+import com.be.bang.dto.PostListResDto;
 import com.be.bang.dto.TaskListResDto;
 import com.be.bang.dto.UserUpdate;
 import com.be.bang.service.*;
@@ -271,10 +272,17 @@ class BangApplicationTests {
         System.out.println(openid);
     }
 
-
+    @Resource
+    PostService postService;
     @Test
-    public void test() throws Exception {
-
+    public void test() {
+        R<Page<PostListResDto>> r = postService.queryPostOfImageText("18119451226", 1, 5, null);
+        Page<PostListResDto> result = r.getResult();
+        List<PostListResDto> records = result.getRecords();
+        System.out.printf("=-=============");
+        for (PostListResDto record : records) {
+            System.out.println(record);
+        }
     }
 }
 

@@ -13,7 +13,6 @@ import com.be.bang.mapper.PostMapper;
 import com.be.bang.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -56,7 +55,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private UserService userService;
     @Resource
     private PostCommentService postCommentService;
-
+    @Resource
+    private PostMapper postMapper;
 
     /**
      * 发布帖子
@@ -268,6 +268,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return R.success(resDtoList);
     }
 
+
     /**
      * 图文
      *
@@ -289,46 +290,48 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (count <= 0)  BangException.cast("暂无帖子，快去发布吧！");
 //        Page<PostListResDto> resDtoList = getPostListResDtos(openid,qw,page,pageSize);
         Page<Post> pageInfo = new Page<>(page, pageSize);
-        pageInfo.setOptimizeCountSql(false);
-        Page<PostListResDto> dtoPage = new Page<>(page, pageSize);
-        this.page(pageInfo, qw);
-        List<Post> list = pageInfo.getRecords();
-        BeanUtils.copyProperties(pageInfo, dtoPage, "records");
-        List<PostListResDto> resDtoList = list.stream().map(post -> {
-            String postId = post.getId();
-            PostListResDto postListResDto = new PostListResDto();
-            BeanUtils.copyProperties(post, postListResDto);
-            //获取话题名
-            String topicName = topicService.getTopicName(post.getTopicId());
-            postListResDto.setTopicName(topicName);
-            //获取发帖人信息
-            Map<String,String> userInfo = userService.getOneInfo(post.getUserId());
-            postListResDto.setHead(userInfo.get("head"));
-            postListResDto.setUsername(userInfo.get("username"));
-            //是否关注发帖人
-            boolean isFollow = userFollowService.isFollow(post.getUserId(), openid);
-            postListResDto.setFollow(isFollow);
-            //获取帖子点赞量
-            Long likeNum = postLikeService.getLikeNum(postId);
-            postListResDto.setLikeNum(likeNum);
-            //获取附件
-            String[] urls = fileService.getPostFiles(postId);
-            postListResDto.setUrls(urls);
-            //是否点赞
-            boolean isLike = postLikeService.isLike(openid, postId);
-            postListResDto.setLike(isLike);
-            //是否收藏
-            boolean collect = postCollectService.isCollect(openid, postId);
-            postListResDto.setCollect(collect);
-            return postListResDto;
-        }).collect(Collectors.toList());
-        dtoPage.setRecords(resDtoList);
-
-        dtoPage.setRecords(dtoPage.getRecords().stream().filter(postListResDto -> postListResDto.getUrls().length>0).collect(Collectors.toList()));
+        Page<PostListResDto> postListResDtoPage = postMapper.queryPostOfImageText(pageInfo, search, openid);
+        postListResDtoPage.getRecords().forEach(postDto-> postDto.setUrls(fileService.getPostFiles(postDto.getId())));
+//        pageInfo.setOptimizeCountSql(false);
+//        Page<PostListResDto> dtoPage = new Page<>(page, pageSize);
+//        this.page(pageInfo, qw);
+//        List<Post> list = pageInfo.getRecords();
+//        BeanUtils.copyProperties(pageInfo, dtoPage, "records");
+//        List<PostListResDto> resDtoList = list.stream().map(post -> {
+//            String postId = post.getId();
+//            PostListResDto postListResDto = new PostListResDto();
+//            BeanUtils.copyProperties(post, postListResDto);
+//            //获取话题名
+//            String topicName = topicService.getTopicName(post.getTopicId());
+//            postListResDto.setTopicName(topicName);
+//            //获取发帖人信息
+//            Map<String,String> userInfo = userService.getOneInfo(post.getUserId());
+//            postListResDto.setHead(userInfo.get("head"));
+//            postListResDto.setUsername(userInfo.get("username"));
+//            //是否关注发帖人
+//            boolean isFollow = userFollowService.isFollow(post.getUserId(), openid);
+//            postListResDto.setFollow(isFollow);
+//            //获取帖子点赞量
+//            Long likeNum = postLikeService.getLikeNum(postId);
+//            postListResDto.setLikeNum(likeNum);
+//            //获取附件
+//            String[] urls = fileService.getPostFiles(postId);
+//            postListResDto.setUrls(urls);
+//            //是否点赞
+//            boolean isLike = postLikeService.isLike(openid, postId);
+//            postListResDto.setLike(isLike);
+//            //是否收藏
+//            boolean collect = postCollectService.isCollect(openid, postId);
+//            postListResDto.setCollect(collect);
+//            return postListResDto;
+//        }).collect(Collectors.toList());
+//        dtoPage.setRecords(resDtoList);
+//
+//        dtoPage.setRecords(dtoPage.getRecords().stream().filter(postListResDto -> postListResDto.getUrls().length>0).collect(Collectors.toList()));
         //按点赞数降序
-        dtoPage.setRecords(ListUtil.sortByProperty(dtoPage.getRecords(),"likeNum"));
-        dtoPage.setRecords(ListUtil.reverse(dtoPage.getRecords()));
-        return R.success(resDtoList);
+        postListResDtoPage.setRecords(ListUtil.sortByProperty(postListResDtoPage.getRecords(),"likeNum"));
+        postListResDtoPage.setRecords(ListUtil.reverse(postListResDtoPage.getRecords()));
+        return R.success(postListResDtoPage);
     }
 
 
@@ -754,35 +757,35 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
 
-    @Autowired
-    private PostMapper postMapper;
+//    @Autowired
+//    private PostMapper postMapper;
 
-    /**
-     * 查询帖子审核
-     *
-     * @param id 帖子审核主键
-     * @return 帖子审核
-     */
-    @Override
-    public Post selectPostById(String id)
-    {
-        return postMapper.selectPostById(id);
-    }
-
-    /**
-     * 查询帖子审核列表
-     *
-     * @param post 帖子审核
-     * @return 帖子审核
-     */
-    @Override
-    public List<Post> selectPostList(Post post)
-    {
-        return postMapper.selectPostList(post);
-//        LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
-//        qw.eq(post.)
-//        this.list();
-    }
+//    /**
+//     * 查询帖子审核
+//     *
+//     * @param id 帖子审核主键
+//     * @return 帖子审核
+//     */
+//    @Override
+//    public Post selectPostById(String id)
+//    {
+//        return postMapper.selectPostById(id);
+//    }
+//
+//    /**
+//     * 查询帖子审核列表
+//     *
+//     * @param post 帖子审核
+//     * @return 帖子审核
+//     */
+//    @Override
+//    public List<Post> selectPostList(Post post)
+//    {
+//        return postMapper.selectPostList(post);
+////        LambdaQueryWrapper<Post> qw = new LambdaQueryWrapper<>();
+////        qw.eq(post.)
+////        this.list();
+//    }
 
 //    /**
 //     * 新增帖子审核
@@ -810,29 +813,29 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 //        return postMapper.updatePost(post);
 //    }
 
-    /**
-     * 批量删除帖子审核
-     *
-     * @param ids 需要删除的帖子审核主键
-     * @return 结果
-     */
-    @Override
-    public int deletePostByIds(String[] ids)
-    {
-        return postMapper.deletePostByIds(ids);
-    }
-
-    /**
-     * 删除帖子审核信息
-     *
-     * @param id 帖子审核主键
-     * @return 结果
-     */
-    @Override
-    public int deletePostById(String id)
-    {
-        return postMapper.deletePostById(id);
-    }
+//    /**
+//     * 批量删除帖子审核
+//     *
+//     * @param ids 需要删除的帖子审核主键
+//     * @return 结果
+//     */
+//    @Override
+//    public int deletePostByIds(String[] ids)
+//    {
+//        return postMapper.deletePostByIds(ids);
+//    }
+//
+//    /**
+//     * 删除帖子审核信息
+//     *
+//     * @param id 帖子审核主键
+//     * @return 结果
+//     */
+//    @Override
+//    public int deletePostById(String id)
+//    {
+//        return postMapper.deletePostById(id);
+//    }
 
 }
 

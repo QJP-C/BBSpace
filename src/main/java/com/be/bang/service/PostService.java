@@ -8,8 +8,6 @@ import com.be.bang.dto.PostDetDto;
 import com.be.bang.dto.PostListResDto;
 import com.be.bang.dto.PostNewParamDto;
 
-import java.util.List;
-
 /**
  * (Post)表服务接口
  *
@@ -135,21 +133,21 @@ public interface PostService extends IService<Post> {
 
 
 
-    /**
-     * 查询帖子审核
-     *
-     * @param id 帖子审核主键
-     * @return 帖子审核
-     */
-    public Post selectPostById(String id);
-
-    /**
-     * 查询帖子审核列表
-     *
-     * @param post 帖子审核
-     * @return 帖子审核集合
-     */
-    public List<Post> selectPostList(Post post);
+//    /**
+//     * 查询帖子审核
+//     *
+//     * @param id 帖子审核主键
+//     * @return 帖子审核
+//     */
+//    public Post selectPostById(String id);
+//
+//    /**
+//     * 查询帖子审核列表
+//     *
+//     * @param post 帖子审核
+//     * @return 帖子审核集合
+//     */
+//    public List<Post> selectPostList(Post post);
 
 //    /**
 //     * 新增帖子审核
@@ -167,21 +165,21 @@ public interface PostService extends IService<Post> {
 //     */
 //    public int updatePost(Post post);
 
-    /**
-     * 批量删除帖子审核
-     *
-     * @param ids 需要删除的帖子审核主键集合
-     * @return 结果
-     */
-    public int deletePostByIds(String[] ids);
-
-    /**
-     * 删除帖子审核信息
-     *
-     * @param id 帖子审核主键
-     * @return 结果
-     */
-    public int deletePostById(String id);
+//    /**
+//     * 批量删除帖子审核
+//     *
+//     * @param ids 需要删除的帖子审核主键集合
+//     * @return 结果
+//     */
+//    public int deletePostByIds(String[] ids);
+//
+//    /**
+//     * 删除帖子审核信息
+//     *
+//     * @param id 帖子审核主键
+//     * @return 结果
+//     */
+//    public int deletePostById(String id);
 
     /**
      * 指定话题的帖子条数
