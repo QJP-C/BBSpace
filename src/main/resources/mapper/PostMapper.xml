@@ -25,5 +25,27 @@
         from post PO
                  left join file FI on PO.id = FI.about_id
         where LENGTH(FI.url) > 2
+        ORDER BY PO.release_time DESC
+    </select>
+    <select id="queryPostOfFollow" resultType="com.be.bang.dto.PostListResDto">
+        select PO.id,
+               PO.user_id,
+               PO.topic_id,
+               PO.text,
+               PO.location,
+               PO.release_time,
+               (select TP.name from topic TP where TP.id = PO.topic_id)          as topicName,
+               (select US.head from user US where US.id = PO.user_id)            as head,
+               (select US.username from user US where US.id = PO.user_id)        as userName,
+               if((select count(1) from user_follow UF where UF.user_id = #{openId} and UF.follow_id = PO.user_id) > 0,
+                  true, false)                                                   as isFollow,
+               (select count(1) from post_like PL where PL.post_id = PO.id)      as likeNum,
+               if((select count(1) from post_like PL where PL.post_id = PO.id and PL.user_id = #{openId}) > 0, true,
+                  false)                                                         as isLike,
+               if((select count(1) from post_collect PC where PC.post_id = PO.id and PC.user_id = #{openId}) > 0, true,
+                  false)                                                         as isCollect
+        from post PO
+        where PO.user_id in (select follow_id from user_follow where user_id = #{openId})
+        ORDER BY PO.release_time DESC
     </select>
 </mapper>

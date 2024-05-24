@@ -103,6 +103,17 @@ public class PostController {
         return postService.queryPostOfFollow(openid, max, offset, pageSize);
     }
 
+    @ApiOperation("关注的用户动态(新)")
+    @GetMapping("newListByFollow")
+    public R newPageByFollow(@RequestHeader("Authorization") String header,
+                             @RequestParam("page") int page,
+                             @RequestParam("pageSize") int pageSize
+    ) {
+        String openid = jwtUtil.getOpenidFromToken(header);
+        return postService.newQueryPostOfFollow(openid, page, pageSize);
+    }
+
+
     @ApiOperation("推荐")
     @GetMapping("listByRecommend")
     public R queryPostOfRecommend(@RequestHeader("Authorization") String header,

@@ -284,6 +284,17 @@ class BangApplicationTests {
             System.out.println(record);
         }
     }
+
+    @Test
+    public void dvsdv(){
+        R<Page<PostListResDto>> r = postService.newQueryPostOfFollow("18671682176", 1, 5);
+//        System.out.printf(r.getMessage());
+        Page<PostListResDto> result = r.getResult();
+        List<PostListResDto> records = result.getRecords();
+        for (PostListResDto record : records) {
+            System.out.println(record);
+        }
+    }
 }
 
 

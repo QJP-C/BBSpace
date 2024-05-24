@@ -412,6 +412,24 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     }
 
     /**
+     * 关注的用户动态(新)
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public R newQueryPostOfFollow(String openid, int page, int pageSize) {
+        Page<Post> pageInfo = new Page<>(page, pageSize);
+        Page<PostListResDto> postListResDtoPage = postMapper.queryPostOfFollow(pageInfo, openid);
+        postListResDtoPage.getRecords().forEach(postDto-> postDto.setUrls(fileService.getPostFiles(postDto.getId())));
+        //按点赞数降序
+        postListResDtoPage.setRecords(ListUtil.sortByProperty(postListResDtoPage.getRecords(),"likeNum"));
+        postListResDtoPage.setRecords(ListUtil.reverse(postListResDtoPage.getRecords()));
+        return !postListResDtoPage.getRecords().isEmpty() ? R.success(postListResDtoPage) : R.success(new ArrayList<>(),"您还没有关注其他人哦！O_o!");
+    }
+
+    /**
      * 获取帖子列表构造返回数据
      *
      * @param openid

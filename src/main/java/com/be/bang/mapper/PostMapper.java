@@ -15,9 +15,16 @@ import org.apache.ibatis.annotations.Param;
  */
 @Mapper
 public interface PostMapper extends BaseMapper<Post> {
+    /**
+     * 查询图文列表
+     * @param page
+     * @param search
+     * @param openId
+     * @return
+     */
+    Page<PostListResDto> queryPostOfImageText(@Param("page") Page<Post> page, @Param("search") String search, @Param("openId") String openId);
 
-    Page<PostListResDto> queryPostOfImageText(@Param("page") Page<Post> page, @Param("search") String search,@Param("openId") String openId);
-
+    Page<PostListResDto> queryPostOfFollow(@Param("page") Page<Post> page, @Param("openId") String openId);
 //
 //
 //    /**

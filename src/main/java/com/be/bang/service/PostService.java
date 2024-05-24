@@ -62,6 +62,14 @@ public interface PostService extends IService<Post> {
     R queryPostOfFollow(String openid, Long max, Integer offset, Integer pageSize);
 
     /**
+     * 关注的用户动态(新)
+     * @param openid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    R newQueryPostOfFollow(String openid, int page, int pageSize);
+    /**
      * 按话题查(新帖)
      * @param openid
      * @param topicId
